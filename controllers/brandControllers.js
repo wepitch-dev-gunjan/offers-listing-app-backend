@@ -3,11 +3,11 @@ const uploadImage = require("../services/cloudinary");
 const upload = require("../middlewares/upload");
 const { uploadMultipleImages } = require("../services/cloudinary");
 
-cloudinary.config({
-  // cloud_name: "drqangxt5",
-  // api_key: "831579838286736",
-  // api_secret: "-Lz6ym2YT9sw2HTLm3DCJp8Lmn0",
-});
+// cloudinary.config({
+//   // cloud_name: "drqangxt5",
+//   // api_key: "831579838286736",
+//   // api_secret: "-Lz6ym2YT9sw2HTLm3DCJp8Lmn0",
+// });
 
 exports.postBrand = async (req, res) => {
   try {
