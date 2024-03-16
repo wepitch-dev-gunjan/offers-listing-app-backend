@@ -21,4 +21,5 @@ readdirSync('./routes').map(r => app.use('/', require('./routes/' + r)))
 
 app.listen(PORT, () => console.log('Server is running on port : ' + PORT))
 
+
 module.exports = app;
