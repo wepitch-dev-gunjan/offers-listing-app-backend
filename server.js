@@ -1,5 +1,5 @@
 const app = require('express')()
-const mongoose = require('mongodb')
+const mongoose = require('mongoose')
 require('dotenv').config()
 const { readdirSync } = require('fs')
 const bodyParser = require('body-parser')
@@ -7,11 +7,11 @@ const bodyParser = require('body-parser')
 const MONGODB_URI = process.env.MONGODB_URI
 const PORT = process.env.PORT || 5000
 
-// app.use(bodyParser.json())
-// // database connection
-// mongoose.connect(MONGODB_URI).then(() => {
-//   console.log('database is connected')
-// }).catch(err => console.log(err))
+app.use(bodyParser.json())
+// database connection
+mongoose.connect(MONGODB_URI).then(() => {
+  console.log('database is connected')
+}).catch(err => console.log(err))
 
 app.get('/', async (req, res) => {
   res.send('Welcome to offers listing app')
