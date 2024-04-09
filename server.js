@@ -1,5 +1,5 @@
 const app = require('express')()
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 require('dotenv').config()
 const { readdirSync } = require('fs')
 const bodyParser = require('body-parser')
