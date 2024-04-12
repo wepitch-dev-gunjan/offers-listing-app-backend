@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 require('dotenv').config();
 const { readdirSync } = require('fs');
+const { inject } = require("@vercel/analytics");
 
 const app = express();
 app.use(bodyParser.json());
@@ -18,5 +19,7 @@ readdirSync('./routes').map(r => app.use('/', require('./routes/' + r)));
 app.get('/', async (req, res) => {
   res.send('Welcome to offers listing app');
 });
+
+inject()
 
 module.exports = app;

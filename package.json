@@ -11,6 +11,7 @@
   "author": "Gunjan Soral",
   "license": "ISC",
   "dependencies": {
+    "@vercel/analytics": "^1.2.2",
     "body-parser": "^1.20.2",
     "bson": "^6.6.0",
     "dotenv": "^16.4.4",
