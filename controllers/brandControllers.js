@@ -49,7 +49,7 @@ exports.getBrands = async (req, res) => {
 // Controller to get a specific brand by ID
 exports.getBrand = async (req, res) => {
   try {
-    const brand = await Brand.findById(req.params.id);
+    const brand = await Brand.findOne({ _id: req.params.id });
     if (!brand) {
       return res.status(404).json({ error: "Brand not found" });
     }
@@ -82,7 +82,7 @@ exports.putBrand = async (req, res) => {
 // Controller to delete a specific brand by ID
 exports.deleteBrand = async (req, res) => {
   try {
-    const deletedBrand = await Brand.findByIdAndDelete(req.params.id);
+    const deletedBrand = await Brand.findOnedAndDelete({ _id: req.params.id });
     if (!deletedBrand) {
       return res.status(404).json({ error: "Brand not found" });
     }
