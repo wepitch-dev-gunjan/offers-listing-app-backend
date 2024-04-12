@@ -73,7 +73,7 @@ exports.putOffer = async (req, res) => {
 // Controller to delete a specific offer by ID
 exports.deleteOffer = async (req, res) => {
   try {
-    const deletedOffer = await Offer.findByIdAndDelete(req.params.offer_id);
+    const deletedOffer = await Offer.findOneAndDelete({ _id: req.params.offer_id });
     if (!deletedOffer) {
       return res.status(404).json({ error: 'Offer not found' });
     }
