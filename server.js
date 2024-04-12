@@ -1,27 +1,22 @@
-const app = require('express')()
+const express = require('express');
 const mongoose = require('mongoose');
-require('dotenv').config()
-const { readdirSync } = require('fs')
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
+require('dotenv').config();
+const { readdirSync } = require('fs');
 
-const MONGODB_URI = process.env.MONGODB_URI
-const PORT = process.env.PORT || 5000
+const app = express();
+app.use(bodyParser.json());
 
-app.use(bodyParser.json())
-// database connection
-mongoose.connect(MONGODB_URI).then(() => {
-  console.log('database is connected')
-}).catch(err => console.log(err))
+// Database connection
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('Database connected'))
+  .catch(err => console.log(err));
+
+// Routes
+readdirSync('./routes').map(r => app.use('/', require('./routes/' + r)));
 
 app.get('/', async (req, res) => {
-  res.send('Welcome to offers listing app')
-})
-
-
-//routes
-readdirSync('./routes').map(r => app.use('/', require('./routes/' + r)))
-
-app.listen(PORT, () => console.log('Server is running on port : ' + PORT))
-
+  res.send('Welcome to offers listing app');
+});
 
 module.exports = app;
