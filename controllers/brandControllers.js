@@ -13,9 +13,9 @@ exports.postBrand = async (req, res) => {
   try {
     const { title, description, logo } = req.body;
     const { file } = req;
-    if (!file || file.length) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
+    // if (!file || file.length === 0) {
+    //   return res.status(400).json({ error: "No file uploaded" });
+    // }
 
     const newBrand = new Brand({ title, description, logo });
     const savedBrand = await newBrand.save();
@@ -48,8 +48,9 @@ exports.getBrands = async (req, res) => {
 
 // Controller to get a specific brand by ID
 exports.getBrand = async (req, res) => {
+  const { brand_id } = req.params;
   try {
-    const brand = await Brand.findOne({ _id: req.params.id });
+    const brand = await Brand.findById(brand_id);
     if (!brand) {
       return res.status(404).json({ error: "Brand not found" });
     }
@@ -62,10 +63,11 @@ exports.getBrand = async (req, res) => {
 
 // Controller to update a specific brand by ID
 exports.putBrand = async (req, res) => {
+  const { brand_id } = req.params;
   try {
     const { title, description, logo, redirect_link } = req.body;
     const updatedBrand = await Brand.findByIdAndUpdate(
-      req.params.id,
+      brand_id,
       { title, description, logo, redirect_link },
       { new: true }
     );
@@ -81,8 +83,10 @@ exports.putBrand = async (req, res) => {
 
 // Controller to delete a specific brand by ID
 exports.deleteBrand = async (req, res) => {
+  const { brand_id } = req.params;
+  console.log(brand_id);
   try {
-    const deletedBrand = await Brand.findOnedAndDelete({ _id: req.params.id });
+    const deletedBrand = await Brand.findByIdAndDelete(brand_id);
     if (!deletedBrand) {
       return res.status(404).json({ error: "Brand not found" });
     }
