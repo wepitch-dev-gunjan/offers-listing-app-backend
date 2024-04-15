@@ -23,4 +23,8 @@ app.get("/", async (req, res) => {
 
 inject();
 
+app.listen(process.env.PORT, () =>
+  console.log("Server is running " + process.env.PORT)
+);
+
 module.exports = app;
