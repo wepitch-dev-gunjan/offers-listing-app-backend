@@ -10,6 +10,8 @@ exports.postCategory = async (req, res) => {
       return res.status(400).send({
         error: "Category with this name is already exist ",
       });
+    if (!name)
+      return res.status(400).send({ error: "category should not be empty" });
     const newCategory = new Category({ name });
     const savedCategory = await newCategory.save();
     res.status(201).json(savedCategory);
@@ -33,7 +35,7 @@ exports.getCategories = async (req, res) => {
 // Controller to get a specific category by ID
 exports.getCategory = async (req, res) => {
   try {
-    const category = await Category.findById(req.params.id);
+    const category = await Category.findById(req.params.category_id);
     if (!category) {
       return res.status(404).json({ error: "Category not found" });
     }
@@ -48,8 +50,15 @@ exports.getCategory = async (req, res) => {
 exports.putCategory = async (req, res) => {
   try {
     const { name } = req.body;
+    if (name) {
+      const checkCategory = await Category.findOne({ name });
+      if (checkCategory)
+        return res
+          .status(400)
+          .json({ error: " this named category is already present" });
+    }
     const updatedCategory = await Category.findByIdAndUpdate(
-      req.params.id,
+      req.params.category_id,
       { name },
       { new: true }
     );
@@ -66,7 +75,9 @@ exports.putCategory = async (req, res) => {
 // Controller to delete a specific category by ID
 exports.deleteCategory = async (req, res) => {
   try {
-    const deletedCategory = await Category.findByIdAndDelete(req.params.id);
+    const deletedCategory = await Category.findByIdAndDelete(
+      req.params.category_id
+    );
     if (!deletedCategory) {
       return res.status(404).json({ error: "Category not found" });
     }
