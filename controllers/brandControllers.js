@@ -1,24 +1,22 @@
 const Brand = require("../models/Brand");
 const uploadImage = require("../services/cloudinary");
-const upload = require("../middlewares/upload");
-const { uploadMultipleImages } = require("../services/cloudinary");
-
-// cloudinary.config({
-//   // cloud_name: "drqangxt5",
-//   // api_key: "831579838286736",
-//   // api_secret: "-Lz6ym2YT9sw2HTLm3DCJp8Lmn0",
-// });
 
 exports.postBrand = async (req, res) => {
   try {
-    const { title, description, logo } = req.body;
+    const { title, description } = req.body;
     const { file } = req;
-    // if (!file || file.length === 0) {
-    //   return res.status(400).json({ error: "No file uploaded" });
-    // }
 
-    const newBrand = new Brand({ title, description, logo });
+    const uid = Math.floor(Math.random() * 100000).toString(); // Fixing the random number generation
+    const fileName = `brand-logo-${uid}`;
+    const folderName = "brand-logos";
+    const url = await uploadImage(file.buffer, fileName, folderName); // Assuming uploadImage function is defined elsewhere
+    editObject.logo = url;
+    editObject.title = title;
+    editObject.description = description;
+
+    const newBrand = new Brand(editObject);
     const savedBrand = await newBrand.save();
+
     res.status(201).json(savedBrand);
   } catch (error) {
     console.log(error);

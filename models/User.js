@@ -20,6 +20,7 @@ const userSchema = new Schema(
       enum: ["male", "female", "other"],
       default: "male",
     },
+    profile_pic: String
   },
   {
     timestamps: true,

@@ -1,10 +1,10 @@
 const User = require("../models/User"); // Importing the User model
+const { uploadImage } = require("../services/cloudinary");
 
 // Controller to create a new user
 exports.postUser = async (req, res) => {
   try {
     const { name, phone_no, email, location, age, gender } = req.body;
-    console.log(phone_no, email);
     if (!phone_no || !email) {
       return res
         .status(400)
@@ -15,14 +15,14 @@ exports.postUser = async (req, res) => {
       if (checkPhone_no)
         return res
           .status(400)
-          .json({ error: "this  Phone Number is already present" });
+          .json({ error: "this Phone Number is already present" });
     }
     if (email) {
       const checkEmail = await User.findOne({ email });
       if (checkEmail)
         return res
           .status(400)
-          .json({ error: " this  email is already present" });
+          .json({ error: " this email is already present" });
     }
 
     const newUser = new User({ name, phone_no, email, location, age, gender });
@@ -64,29 +64,49 @@ exports.getUser = async (req, res) => {
 exports.putUser = async (req, res) => {
   try {
     const { name, phone_no, email, location, age, gender } = req.body;
-    if (phone_no) {
-      const checkPhone_no = await User.findOne({ phone_no });
-      if (checkPhone_no)
-        return res
-          .status(400)
-          .json({ error: "this  Phone Number is alreadu used" });
+    const { file } = req;
+
+    const editObject = {};
+
+    if (file) {
+      const uid = Math.floor(Math.random() * 100000).toString(); // Fixing the random number generation
+      const fileName = `user-profile-pic-${uid}`;
+      const folderName = "user-profile-pics";
+      const url = await uploadImage(file.buffer, fileName, folderName); // Assuming uploadImage function is defined elsewhere
+      editObject.profile_pic = url;
     }
+
+    if (phone_no) {
+      const checkPhoneNo = await User.findOne({ phone_no });
+      if (checkPhoneNo)
+        return res.status(400).json({ error: "This Phone Number is already used" });
+      editObject.phone_no = phone_no;
+    }
+
     if (email) {
       const checkEmail = await User.findOne({ email });
       if (checkEmail)
-        return res.status(400).json({ error: " this  email is already used" });
+        return res.status(400).json({ error: "This email is already used" });
+      editObject.email = email;
     }
+
+    if (age) editObject.age = age;
+    if (gender) editObject.gender = gender;
+    if (location) editObject.location = location;
+
     const updatedUser = await User.findByIdAndUpdate(
       req.params.user_id,
-      { name, phone_no, email, location, age, gender },
+      editObject,
       { new: true }
     );
+
     if (!updatedUser) {
       return res.status(404).json({ error: "User not found" });
     }
+
     res.status(200).json(updatedUser);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).send({ error: "Internal Server Error" });
   }
 };
