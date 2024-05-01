@@ -3,8 +3,20 @@ const Offer = require("../models/Offer"); // Importing the Offer model
 // Controller to create a new offer
 exports.postOffer = async (req, res) => {
   try {
-    const { name, location, description, image, expire_at, discount_value } =
+    const { name, location, description, expire_at, discount_value } =
       req.body;
+
+    const { file } = req;
+
+    if (!file) return res.status(400).send({
+      error: "Offer image is required"
+    })
+
+    const uid = Math.floor(Math.random() * 100000).toString(); // Fixing the random number generation
+    const fileName = `offer-image-${uid}`;
+    const folderName = "offer-images";
+    const image = await uploadImage(file.buffer, fileName, folderName); // Assuming uploadImage function is defined elsewhere
+
     const newOffer = new Offer({
       name,
       location,

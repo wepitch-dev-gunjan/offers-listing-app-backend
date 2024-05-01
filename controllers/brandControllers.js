@@ -6,6 +6,10 @@ exports.postBrand = async (req, res) => {
     const { title, description } = req.body;
     const { file } = req;
 
+    if (!file) return res.status(400).send({
+      error: "Brand logo is required"
+    })
+
     const uid = Math.floor(Math.random() * 100000).toString(); // Fixing the random number generation
     const fileName = `brand-logo-${uid}`;
     const folderName = "brand-logos";
