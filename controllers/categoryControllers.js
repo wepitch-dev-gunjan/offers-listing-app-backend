@@ -1,9 +1,11 @@
 const Category = require("../models/Category"); // Importing the Category model
+const { uploadImage } = require("../services/cloudinary");
 
 // Controller to create a new category
 exports.postCategory = async (req, res) => {
   try {
     const { name, sub_categories } = req.body;
+    const { file } = req;
     const existingCategory = await Category.findOne({ name });
 
     if (existingCategory)
@@ -14,8 +16,14 @@ exports.postCategory = async (req, res) => {
     if (!name)
       return res.status(400).send({ error: "category should not be empty" });
 
+    const uid = Math.floor(Math.random() * 100000).toString(); // Fixing the random number generation
+    const fileName = `category-image-${uid}`;
+    const folderName = "category-images";
+
+    const image = await uploadImage(file.buffer, fileName, folderName)
     const addingObject = {
-      name
+      name,
+      image
     }
 
     if (sub_categories && sub_categories.length > 0)

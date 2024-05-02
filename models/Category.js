@@ -6,6 +6,7 @@ const categorySchema = new Schema({
     unique: true,
     required: true,
   },
+  image: String,
   sub_categories: {
     type: [String],
     default: null

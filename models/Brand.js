@@ -5,6 +5,10 @@ const brandSchema = new Schema({
   description: String,
   logo: String,
   redirect_link: String,
+  rating: String,
+  stores: {
+    type: [Object]
+  }
 }, {
   timestamps: true,
   strict: false

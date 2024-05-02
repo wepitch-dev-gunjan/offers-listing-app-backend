@@ -37,7 +37,7 @@ exports.postOffer = async (req, res) => {
 // Controller to get all offers
 exports.getOffers = async (req, res) => {
   try {
-    const { search, category } = req.query;
+    const { search, category, sort_by, brand } = req.query;
     let query = {};
 
     // Check if search query is provided
@@ -47,7 +47,7 @@ exports.getOffers = async (req, res) => {
         $or: [
           { name: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for name
           { location: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for location
-          { description: { $regex: new RegExp(search, "i") } } // Case-insensitive search for description
+          { description: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for description
         ]
       };
     }
@@ -57,16 +57,39 @@ exports.getOffers = async (req, res) => {
       if (categoryDoc) query.category = categoryDoc._id
     }
 
+    if (brand) query.brand = brand;
+
+    let sortCriteria = {}; // Define sort criteria object
+
+    // Check if sort_by parameter is provided and set sort criteria accordingly
+    if (sort_by) {
+      // For descending order, set the sort criteria to -1
+      sortCriteria[sort_by] = -1;
+    }
+
+    let offers = [];
+
     // Find offers based on the constructed query and populate category and brand
-    const offers = await Offer.find(query)
-      .populate("category")
-      .populate("brand");
+    if (Object.keys(sortCriteria).length !== 0) {
+      // If sort criteria is provided, sort the offers accordingly
+      offers = await Offer.find(query)
+        .populate("category")
+        .populate("brand")
+        .sort(sortCriteria);
+    } else {
+      // If no sort criteria is provided, just populate category and brand without sorting
+      offers = await Offer.find(query)
+        .populate("category")
+        .populate("brand");
+    }
+
     res.status(200).json(offers);
   } catch (error) {
     console.log(error);
     res.status(500).send({ error: "Internal Server Error" });
   }
 };
+
 
 // Controller to get a specific offer by ID
 exports.getOffer = async (req, res) => {

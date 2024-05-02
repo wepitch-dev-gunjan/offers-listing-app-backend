@@ -6,6 +6,7 @@ const offerSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Category'
   },
+  sub_category: String,
   brand: {
     type: Schema.Types.ObjectId,
     ref: 'Brand'
@@ -14,7 +15,11 @@ const offerSchema = new Schema({
   description: String,
   image: String,
   expire_at: Date,
-  discount_value: Number
+  discount_value: Number,
+  grabbed_by: {
+    type: [Schema.Types.ObjectId],
+    ref: 'User'
+  }
 }, {
   timestamps: true,
   strict: false
