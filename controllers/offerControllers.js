@@ -1,4 +1,5 @@
-const Offer = require("../models/Offer"); // Importing the Offer model
+const Offer = require("../models/Offer");
+const Category = require("../models/Category");
 
 // Controller to create a new offer
 exports.postOffer = async (req, res) => {
@@ -23,7 +24,7 @@ exports.postOffer = async (req, res) => {
       description,
       image,
       expire_at,
-      discount_value,
+      discount_value
     });
     const savedOffer = await newOffer.save();
     res.status(201).json(savedOffer);
@@ -36,7 +37,7 @@ exports.postOffer = async (req, res) => {
 // Controller to get all offers
 exports.getOffers = async (req, res) => {
   try {
-    const { search } = req.query;
+    const { search, category } = req.query;
     let query = {};
 
     // Check if search query is provided
@@ -46,9 +47,14 @@ exports.getOffers = async (req, res) => {
         $or: [
           { name: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for name
           { location: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for location
-          { description: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for description
-        ],
+          { description: { $regex: new RegExp(search, "i") } } // Case-insensitive search for description
+        ]
       };
+    }
+
+    if (category) {
+      const categoryDoc = await Category.findOne({ _id: category })
+      if (categoryDoc) query.category = categoryDoc._id
     }
 
     // Find offers based on the constructed query and populate category and brand

@@ -3,16 +3,25 @@ const Category = require("../models/Category"); // Importing the Category model
 // Controller to create a new category
 exports.postCategory = async (req, res) => {
   try {
-    const { name } = req.body;
-    const searchName = await Category.findOne({ name });
-    console.log(searchName);
-    if (searchName)
+    const { name, sub_categories } = req.body;
+    const existingCategory = await Category.findOne({ name });
+
+    if (existingCategory)
       return res.status(400).send({
         error: "Category with this name is already exist ",
       });
+
     if (!name)
       return res.status(400).send({ error: "category should not be empty" });
-    const newCategory = new Category({ name });
+
+    const addingObject = {
+      name
+    }
+
+    if (sub_categories && sub_categories.length > 0)
+      addingObject.sub_categories = sub_categories;
+
+    const newCategory = new Category(addingObject);
     const savedCategory = await newCategory.save();
     res.status(201).json(savedCategory);
   } catch (error) {

@@ -5,6 +5,10 @@ const categorySchema = new Schema({
     type: String,
     unique: true,
     required: true,
+  },
+  sub_categories: {
+    type: [String],
+    default: null
   }
 }, {
   timestamps: true,
