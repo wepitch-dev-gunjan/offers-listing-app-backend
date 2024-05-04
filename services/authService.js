@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const User = require("../models/User");
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
+const { messageType, client } = require("./smsService");
 const { JWT_SECRET } = process.env;
 require("dotenv").config();
 
@@ -36,12 +37,18 @@ exports.generateOtp = async (req, res) => {
       delete otps[phone_number];
     }, 5 * 60 * 1000); // 3 minutes in milliseconds
 
-    // You may want to send the OTP to the user via SMS or other means here
+    const message = `OTP for login is : ${otp}`
 
-    res.status(200).send({
-      message: "OTP generated successfully",
-      otp // Provide a relevant success message
-    });
+    client.sms.message((error, responseBody) => {
+      if (error === null) {
+        console.log("\nResponse body:\n" + JSON.stringify(responseBody));
+        res.status(200).send(responseBody);
+      } else {
+        console.error('Error sending SMS:', error);
+        res.status(500).send('Error sending SMS');
+      }
+    }, '91' + phone_number, message, messageType)
+    // You may want to send the OTP to the user via SMS or other means here
   } catch (error) {
     console.log(error);
     res.status(500).send({ error: "Internal server error" });
