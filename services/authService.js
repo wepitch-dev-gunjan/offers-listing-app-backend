@@ -42,7 +42,7 @@ exports.generateOtp = async (req, res) => {
     client.sms.message((error, responseBody) => {
       if (error === null) {
         console.log("\nResponse body:\n" + JSON.stringify(responseBody));
-        res.status(200).send(responseBody);
+        res.status(200).send({ ...responseBody, otp });
       } else {
         console.error('Error sending SMS:', error);
         res.status(500).send('Error sending SMS');
