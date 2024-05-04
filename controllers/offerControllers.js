@@ -4,7 +4,7 @@ const Category = require("../models/Category");
 // Controller to create a new offer
 exports.postOffer = async (req, res) => {
   try {
-    const { name, location, description, expire_at, discount_value } =
+    const { name, location, description, expires_in, discount_value } =
       req.body;
 
     const { file } = req;
@@ -23,7 +23,7 @@ exports.postOffer = async (req, res) => {
       location,
       description,
       image,
-      expire_at,
+      expires_in,
       discount_value
     });
     const savedOffer = await newOffer.save();
@@ -162,3 +162,59 @@ exports.deleteOffer = async (req, res) => {
     res.status(500).send({ error: "Internal Server Error" });
   }
 };
+
+exports.saveOffer = async (req, res) => {
+  try {
+    const { user_id } = req;
+    const { offer_id } = req.params;
+    const offer = await Offer.findOne({ _id: offer_id });
+
+    if (offer.saved_by.includes(user_id)) {
+      return res.status(400).send({
+        error: "You are already saved this offer"
+      })
+    }
+
+    offer.saved_by.push(user_id);
+
+    await offer.save();
+    res.status(200).send({
+      message: "Offer saved successfully",
+      data: {
+        following: true
+      }
+    })
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error: 'Internal Server Error' });
+  }
+};
+
+exports.unsaveOffer = async (req, res) => {
+  try {
+    const { user_id } = req;
+    const { offer_id } = req.params;
+    const offer = await Offer.findOne({ _id: offer_id });
+
+    if (!offer.saved_by.includes(user_id)) {
+      return res.status(400).send({
+        error: "You haven't saved this offer yet"
+      })
+    }
+
+    // Remove user_id from the saved_by array
+    offer.saved_by = offer.saved_by.filter(savedUser => savedUser !== user_id);
+
+    await offer.save();
+    res.status(200).send({
+      message: "Offer unsaved successfully",
+      data: {
+        following: false
+      }
+    })
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error: 'Internal Server Error' });
+  }
+};
+

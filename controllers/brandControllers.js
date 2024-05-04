@@ -38,8 +38,8 @@ exports.getBrands = async (req, res) => {
     query = {
       $or: [
         { title: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for name
-        { description: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for description
-      ],
+        { description: { $regex: new RegExp(search, "i") } } // Case-insensitive search for description
+      ]
     };
 
     const brands = await Brand.find(query);

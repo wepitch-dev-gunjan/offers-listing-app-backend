@@ -14,9 +14,13 @@ const offerSchema = new Schema({
   location: String,
   description: String,
   image: String,
-  expire_at: Date,
+  expires_in: Date,
   discount_value: Number,
   grabbed_by: {
+    type: [Schema.Types.ObjectId],
+    ref: 'User'
+  },
+  saved_by: {
     type: [Schema.Types.ObjectId],
     ref: 'User'
   }
