@@ -30,8 +30,6 @@ exports.generateOtp = async (req, res) => {
       attempts: 0,
     };
 
-    console.log(otps, otp)
-
     // Schedule the removal of this OTP after 3 minutes
     setTimeout(() => {
       delete otps[phone_number];

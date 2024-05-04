@@ -1,38 +1,65 @@
 const Offer = require("../models/Offer");
 const Category = require("../models/Category");
+const { deleteImage } = require("../services/cloudinary");
 
 // Controller to create a new offer
 exports.postOffer = async (req, res) => {
   try {
-    const { name, location, description, expires_in, discount_value } =
-      req.body;
-
+    const { description, expires_in, discount_value } = req.body;
     const { file } = req;
 
-    if (!file) return res.status(400).send({
-      error: "Offer image is required"
-    })
+    // Validate request body fields
+    if (!description || !expires_in || !discount_value) {
+      return res.status(400).send({ error: "All fields are required" });
+    }
 
-    const uid = Math.floor(Math.random() * 100000).toString(); // Fixing the random number generation
+    // Validate offer image
+    if (!file || !file.buffer) {
+      return res.status(400).send({ error: "Offer image is required" });
+    }
+
+    // Validate expires_in format
+    if (typeof expires_in !== "number" || expires_in <= 0) {
+      return res.status(400).send({ error: "Expires_in should be a positive number" });
+    }
+
+    // Validate discount_value format
+    if (typeof discount_value !== "number" || discount_value <= 0) {
+      return res.status(400).send({ error: "Discount_value should be a positive number" });
+    }
+
+    // Validate location and description length
+    if (description.length > 500) {
+      return res.status(400).send({
+        error: "Location should be maximum 100 characters and description maximum 500 characters"
+      });
+    }
+
+    // Generate a unique identifier for the image file
+    const uid = Math.floor(Math.random() * 100000).toString();
     const fileName = `offer-image-${uid}`;
     const folderName = "offer-images";
-    const image = await uploadImage(file.buffer, fileName, folderName); // Assuming uploadImage function is defined elsewhere
 
+    // Assuming uploadImage function is defined elsewhere for uploading images
+    const image = await uploadImage(file.buffer, fileName, folderName);
+
+    // Create new offer object
     const newOffer = new Offer({
-      name,
-      location,
       description,
       image,
       expires_in,
       discount_value
     });
+
+    // Save the offer to the database
     const savedOffer = await newOffer.save();
+
     res.status(201).json(savedOffer);
   } catch (error) {
-    console.log(error);
     res.status(500).send({ error: "Internal Server Error" });
   }
 };
+
 
 // Controller to get all offers
 exports.getOffers = async (req, res) => {
@@ -113,32 +140,71 @@ exports.putOffer = async (req, res) => {
   const { offer_id } = req.params;
   try {
     const {
-      name,
       category,
-      brand,
-      location,
       description,
-      image,
-      expire_at,
+      expires_in,
       discount_value,
     } = req.body;
-    const updatedOffer = await Offer.findByIdAndUpdate(
-      req.params.offer_id,
-      {
-        name,
-        category,
-        brand,
-        location,
-        description,
-        image,
-        expire_at,
-        discount_value,
-      },
-      { new: true }
-    );
-    if (!updatedOffer) {
+
+    // Validate request body fields
+    if (!category || !description || !expires_in || !discount_value) {
+      return res.status(400).send({ error: "All fields are required" });
+    }
+
+    // Validate expires_in format
+    if (typeof expires_in !== "number" || expires_in <= 0) {
+      return res.status(400).send({ error: "Expires_in should be a positive number" });
+    }
+
+    // Validate discount_value format
+    if (typeof discount_value !== "number" || discount_value <= 0) {
+      return res.status(400).send({ error: "Discount_value should be a positive number" });
+    }
+
+    // Validate category and description length
+    if (category.length > 100 || description.length > 500) {
+      return res.status(400).send({
+        error: "Category should be maximum 100 characters and description maximum 500 characters"
+      });
+    }
+
+    // Find the offer by its ID
+    const existingOffer = await Offer.findById(offer_id);
+
+    // If the offer is not found, return a 404 error
+    if (!existingOffer) {
       return res.status(404).json({ error: "Offer not found" });
     }
+
+    // Delete previous image if it exists
+    if (existingOffer.image) {
+      // Assuming there's a deleteImage function to delete the image
+      await deleteImage(existingOffer.image);
+    }
+
+    // Check if a new image is included in the request
+    if (req.file && req.file.buffer) {
+      const uid = Math.floor(Math.random() * 100000).toString();
+      const fileName = `offer-image-${uid}`;
+      const folderName = "offer-images";
+
+      // Upload the new image
+      const image = await uploadImage(req.file.buffer, fileName, folderName);
+
+      // Update the offer with the new image
+      existingOffer.image = image;
+    }
+
+    // Update other fields of the offer
+    existingOffer.category = category;
+    existingOffer.description = description;
+    existingOffer.expires_in = expires_in;
+    existingOffer.discount_value = discount_value;
+
+    // Save the updated offer
+    const updatedOffer = await existingOffer.save();
+
+    // Respond with the updated offer
     res.status(200).json(updatedOffer);
   } catch (error) {
     console.log(error);
@@ -150,12 +216,24 @@ exports.putOffer = async (req, res) => {
 exports.deleteOffer = async (req, res) => {
   const { offer_id } = req.params;
   try {
-    const deletedOffer = await Offer.findOneAndDelete({
-      _id: req.params.offer_id,
-    });
-    if (!deletedOffer) {
+    // Find the offer by its ID
+    const existingOffer = await Offer.findById(offer_id);
+
+    // If the offer is not found, return a 404 error
+    if (!existingOffer) {
       return res.status(404).json({ error: "Offer not found" });
     }
+
+    // Delete the offer's image if it exists
+    if (existingOffer.image) {
+      // Assuming there's a deleteImage function to delete the image
+      await deleteImage(existingOffer.image);
+    }
+
+    // Delete the offer document from the database
+    await existingOffer.deleteOne();
+
+    // Respond with success message
     res.status(200).json({ message: "Offer deleted successfully" });
   } catch (error) {
     console.log(error);
