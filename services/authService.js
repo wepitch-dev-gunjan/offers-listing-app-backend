@@ -100,10 +100,10 @@ exports.verifyOtp = async (req, res) => {
     res.status(200).send({
       message: "OTP verified successfully",
       already_registered,
-      token,
+      token
     });
   } catch (error) {
     console.log(error);
-    res.status(500).send({ error: "Internal server error" });
+    res.status(500).send({ error });
   }
 };
