@@ -2,7 +2,7 @@
   "name": "offers-listing-app",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "api/server.js",
   "scripts": {
     "start": "nodemon api/server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
