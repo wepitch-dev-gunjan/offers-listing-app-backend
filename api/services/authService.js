@@ -3,6 +3,7 @@ const User = require("../models/User");
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
 const { messageType, client } = require("./smsService");
+const Otp = require("../models/Otp");
 const { JWT_SECRET } = process.env;
 require("dotenv").config();
 
@@ -24,16 +25,21 @@ exports.generateOtp = async (req, res) => {
     expirationTime.setMinutes(expirationTime.getMinutes() + 3); // Expires in 3 minutes
 
     // Store the OTP in the temporary storage object
-    otps[phone_number] = {
-      otp: hashedOtp || otp,
-      expiresAt: expirationTime,
-      attempts: 0
+    let otpObj = await Otp.findOne({ phone_number });
+
+    if (otpObj) {
+      otpObj.expiresAt = expirationTime;
+      otpObj.hashedOtp = hashedOtp;
+      otpObj.attempts = 0;
+    } else {
+      otpObj = new Otp({
+        phone_number,
+        hashedOtp,
+        expiresAt: expirationTime,
+      });
     }
 
-    // Schedule the removal of this OTP after 3 minutes
-    setTimeout(() => {
-      delete otps[phone_number];
-    }, 5 * 60 * 1000); // 3 minutes in milliseconds
+    await otpObj.save();
 
     const message = `OTP for login is : ${otp}`
 
@@ -58,27 +64,25 @@ exports.verifyOtp = async (req, res) => {
     const { phone_number, otp } = req.body;
 
     // Check if the provided OTP matches the one stored in memory
-    const storedOtp = otps[phone_number];
-    console.log(storedOtp)
+    let otpObj = await Otp.findOne({ phone_number });
 
-    if (!storedOtp) return res.status(404).send({
-      error: "Resend otp again"
-    })
+    if (!otpObj)
+      return res.status(404).send({ error: "Phone number not found" });
 
-    if (storedOtp.otp !== crypto.createHash("sha256").update(otp).digest("hex")) {
-      // Handle cases where OTP doesn't match or phone number is not found
-      storedOtp.attempts++;
+    if (otpObj.attempts >= 3 || new Date() > otpObj.expiresAt) {
+      // Handle cases where too many attempts or OTP expiration
+      return res.status(401).send({ error: "Invalid OTP token" });
     }
 
-    if (storedOtp.attepts >= 3) return res.status(403).send({
-      error: 'Invalid otp, please try again'
-    })
+    // Hash the received OTP from the client
+    const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
 
-
-    if (new Date() > storedOtp.expiresAt) {
-      // Handle case where OTP has expired
-      delete otps[phone_number]; // Remove expired OTP
-      return res.status(401).send({ error: "OTP has expired" });
+    // Verify if the hashed OTP from the client matches the hashed OTP stored in your data storage
+    if (hashedOtp !== otpObj.hashedOtp) {
+      // Increment the attempts on failed verification
+      otpObj.attempts++;
+      await otpObj.save();
+      return res.status(401).send({ error: "Invalid OTP token" });
     }
 
     // If OTP is valid, you can proceed with user verification
@@ -98,9 +102,7 @@ exports.verifyOtp = async (req, res) => {
     const token = jwt.sign({ user_id: _id, phone_number }, JWT_SECRET);
 
     // Clear the stored OTP after successful verification
-    delete otps[phone_number];
-
-    console.log(otps)
+    await otpObj.deleteOne();
 
     res.status(200).send({
       message: "OTP verified successfully",
