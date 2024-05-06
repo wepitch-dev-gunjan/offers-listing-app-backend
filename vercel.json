@@ -1,15 +1,13 @@
-
 {
   "version": 2,
   "routes": [
     {
-      "src": "/(.*)",
-      "dest": "server.js"
+      "src": "/api/(.*)",
+      "dest": "api/function.js"
     }
   ],
-  "outputDirectory": ".",
   "functions": {
-    "api/**/*": {
+    "api/**/*.js": {
       "maxDuration": 30
     }
   }
