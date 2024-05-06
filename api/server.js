@@ -15,7 +15,7 @@ mongoose
   .catch((err) => console.log(err));
 
 // Routes
-readdirSync("./routes").map((r) => app.use("/", require("./routes/" + r)));
+readdirSync("./api/routes").map((r) => app.use("/", require("./routes/" + r)));
 
 app.get("/", async (req, res) => {
   res.send("Welcome to offers listing app");
