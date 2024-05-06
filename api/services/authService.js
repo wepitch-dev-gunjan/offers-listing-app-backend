@@ -87,12 +87,11 @@ exports.verifyOtp = async (req, res) => {
 
     // If OTP is valid, you can proceed with user verification
     let user = await User.findOne({ phone_no: phone_number });
-    const already_registered = !!user.name && !!user.age;
+    const already_registered = !!user?.name && !!user?.age;
 
     if (!user) {
       user = new User({
         phone_no: phone_number,
-        verified: true,
       });
 
       await user.save();
@@ -102,7 +101,7 @@ exports.verifyOtp = async (req, res) => {
     const token = jwt.sign({ user_id: _id, phone_number }, JWT_SECRET);
 
     // Clear the stored OTP after successful verification
-    await otpObj.deleteOne();
+    await Otp.findOneAndDelete({ phone_number });
 
     res.status(200).send({
       message: "OTP verified successfully",
