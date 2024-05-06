@@ -5,8 +5,7 @@
   "main": "api/server.js",
   "scripts": {
     "start": "nodemon api/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "node api/server.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Gunjan Soral",
   "license": "ISC",
