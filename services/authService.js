@@ -27,8 +27,8 @@ exports.generateOtp = async (req, res) => {
     otps[phone_number] = {
       otp: hashedOtp || otp,
       expiresAt: expirationTime,
-      attempts: 0,
-    };
+      attempts: 0
+    }
 
     // Schedule the removal of this OTP after 3 minutes
     setTimeout(() => {
@@ -39,13 +39,13 @@ exports.generateOtp = async (req, res) => {
 
     client.sms.message((error, responseBody) => {
       if (error === null) {
-        console.log("\nResponse body:\n" + JSON.stringify(responseBody));
+        console.log(`\nResponse body:\n${JSON.stringify(responseBody)}`);
         res.status(200).send({ ...responseBody, otp });
       } else {
         console.error('Error sending SMS:', error);
         res.status(500).send('Error sending SMS');
       }
-    }, '91' + phone_number, message, messageType)
+    }, `91${phone_number}`, message, messageType)
     // You may want to send the OTP to the user via SMS or other means here
   } catch (error) {
     console.log(error);
@@ -59,8 +59,13 @@ exports.verifyOtp = async (req, res) => {
 
     // Check if the provided OTP matches the one stored in memory
     const storedOtp = otps[phone_number];
+    console.log(storedOtp)
 
-    if (!storedOtp || storedOtp.otp !== crypto.createHash("sha256").update(otp).digest("hex")) {
+    if (!storedOtp) return res.status(404).send({
+      error: "Resend otp again"
+    })
+
+    if (storedOtp.otp !== crypto.createHash("sha256").update(otp).digest("hex")) {
       // Handle cases where OTP doesn't match or phone number is not found
       storedOtp.attempts++;
     }
