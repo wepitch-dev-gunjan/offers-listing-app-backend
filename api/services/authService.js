@@ -83,7 +83,7 @@ exports.verifyOtp = async (req, res) => {
 
     // If OTP is valid, you can proceed with user verification
     let user = await User.findOne({ phone_no: phone_number });
-    const already_registered = !!user;
+    const already_registered = !!user.name && !!user.age;
 
     if (!user) {
       user = new User({
