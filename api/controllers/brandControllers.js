@@ -6,11 +6,13 @@ exports.postBrand = async (req, res) => {
     const { title, description, redirect_link } = req.body;
     const { file } = req;
 
-    if (!file) return res.status(400).send({
-      error: "Brand logo is required"
-    })
+    if (!file)
+      return res.status(400).send({
+        error: "Brand logo is required",
+      });
+    console.log(file);
 
-    const editObject = {}
+    const editObject = {};
     const uid = Math.floor(Math.random() * 100000).toString(); // Fixing the random number generation
     const fileName = `brand-logo-${uid}`;
     const folderName = "brand-logos";
@@ -38,8 +40,8 @@ exports.getBrands = async (req, res) => {
     query = {
       $or: [
         { title: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for name
-        { description: { $regex: new RegExp(search, "i") } } // Case-insensitive search for description
-      ]
+        { description: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for description
+      ],
     };
 
     const brands = await Brand.find(query);
@@ -108,13 +110,15 @@ exports.addStore = async (req, res) => {
 
     // Validate input fields
     if (!name || !location || !rating) {
-      return res.status(400).json({ error: "Name, location, and rating are required" });
+      return res
+        .status(400)
+        .json({ error: "Name, location, and rating are required" });
     }
 
     const store = {
       name,
       location,
-      rating
+      rating,
     };
 
     const brand = await Brand.findOne({ _id: brand_id });
@@ -128,7 +132,7 @@ exports.addStore = async (req, res) => {
     res.status(200).send({ message: "Store added successfully" });
   } catch (error) {
     console.log(error);
-    res.status(500).send({ error: 'Internal Server Error' });
+    res.status(500).send({ error: "Internal Server Error" });
   }
 };
 
@@ -147,7 +151,9 @@ exports.deleteStore = async (req, res) => {
     }
 
     // Find the index of the store in the brand's stores array
-    const storeIndex = brand.stores.findIndex(store => store._id.toString() === store_id);
+    const storeIndex = brand.stores.findIndex(
+      (store) => store._id.toString() === store_id
+    );
 
     // Check if the store exists in the brand's stores array
     if (storeIndex === -1) {
@@ -162,7 +168,7 @@ exports.deleteStore = async (req, res) => {
     res.status(200).send({ message: "Store deleted successfully" });
   } catch (error) {
     console.log(error);
-    res.status(500).send({ error: 'Internal Server Error' });
+    res.status(500).send({ error: "Internal Server Error" });
   }
 };
 
@@ -173,7 +179,9 @@ exports.editStore = async (req, res) => {
 
     // Validate input fields
     if (!store_id || !name || !location || !rating) {
-      return res.status(400).json({ error: "Store ID, name, location, and rating are required" });
+      return res
+        .status(400)
+        .json({ error: "Store ID, name, location, and rating are required" });
     }
 
     const brand = await Brand.findOne({ _id: brand_id });
@@ -182,7 +190,9 @@ exports.editStore = async (req, res) => {
     }
 
     // Find the index of the store in the brand's stores array
-    const storeIndex = brand.stores.findIndex(store => store._id.toString() === store_id);
+    const storeIndex = brand.stores.findIndex(
+      (store) => store._id.toString() === store_id
+    );
 
     // Check if the store exists in the brand's stores array
     if (storeIndex === -1) {
@@ -199,8 +209,6 @@ exports.editStore = async (req, res) => {
     res.status(200).send({ message: "Store updated successfully" });
   } catch (error) {
     console.log(error);
-    res.status(500).send({ error: 'Internal Server Error' });
+    res.status(500).send({ error: "Internal Server Error" });
   }
 };
-
-
