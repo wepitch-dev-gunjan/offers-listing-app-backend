@@ -65,7 +65,7 @@ exports.getUser = async (req, res) => {
 exports.putUser = async (req, res) => {
   try {
     const { name, phone_no, email, location, age, gender } = req.body;
-    const { file } = req;
+    const { file, user_id } = req;
 
     const editObject = {};
 
@@ -96,7 +96,7 @@ exports.putUser = async (req, res) => {
     if (location) editObject.location = location;
 
     const updatedUser = await User.findByIdAndUpdate(
-      req.params.user_id,
+      user_id,
       editObject,
       { new: true }
     );
