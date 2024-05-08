@@ -11,7 +11,7 @@ router.put('/otp', verifyOtp);
 router.post('/user', postUser)
 router.get('/user/users', getUsers)
 router.get('/user', userAuth, getUser)
-router.put('/user/:user_id', upload.single('profile_pic'), putUser)
+router.put('/user', userAuth, upload.single('profile_pic'), putUser)
 router.delete('/user/:user_id', deleteUser)
 
 module.exports = router
