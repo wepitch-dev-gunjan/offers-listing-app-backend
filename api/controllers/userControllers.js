@@ -91,6 +91,7 @@ exports.putUser = async (req, res) => {
       editObject.email = email;
     }
 
+    if (name) editObject.name = name;
     if (age) editObject.age = age;
     if (gender) editObject.gender = gender;
     if (location) editObject.location = location;
