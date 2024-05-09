@@ -7,13 +7,13 @@ const {
   deleteBrand,
   addStore,
   editStore,
-  deleteStore
+  deleteStore,
 } = require("../controllers/brandControllers");
 const upload = require("../middlewares/uploadImage");
 const router = express.Router();
 
 // brand routes
-router.post("/brand", upload.single('logo'), postBrand);
+router.post("/brand", upload.single("logo"), postBrand);
 router.get("/brand", getBrands);
 router.get("/brand/:brand_id", getBrand);
 router.put("/brand/:brand_id", putBrand);

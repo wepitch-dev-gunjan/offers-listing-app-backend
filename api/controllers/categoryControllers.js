@@ -20,11 +20,11 @@ exports.postCategory = async (req, res) => {
     const fileName = `category-image-${uid}`;
     const folderName = "category-images";
 
-    const image = await uploadImage(file.buffer, fileName, folderName)
+    const image = await uploadImage(file.buffer, fileName, folderName);
     const addingObject = {
       name,
-      image
-    }
+      image,
+    };
 
     if (sub_categories && sub_categories.length > 0)
       addingObject.sub_categories = sub_categories;
@@ -42,6 +42,7 @@ exports.postCategory = async (req, res) => {
 exports.getCategories = async (req, res) => {
   try {
     const categories = await Category.find();
+    if (!categories) return res.status(200).send([]);
     res.status(200).json(categories);
   } catch (error) {
     console.log(error);
