@@ -10,7 +10,6 @@ const brandSchema = new Schema(
       type: [Object],
     },
     categories: { type: [Object] },
-    sub_categories: { type: [String] },
   },
   {
     timestamps: true,
