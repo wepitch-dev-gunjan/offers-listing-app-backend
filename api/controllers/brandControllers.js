@@ -2,34 +2,35 @@ const Brand = require("../models/Brand");
 const { uploadImage } = require("../services/cloudinary");
 
 exports.postBrand = async (req, res) => {
-  try {
-    const { title, description, redirect_link } = req.body;
-    const { file } = req;
+ try {
+   const { title, description, redirect_link, categories } = req.body;
+   const { file } = req;
 
-    if (!file)
-      return res.status(400).send({
-        error: "Brand logo is required",
-      });
-    console.log(file);
+   if (!file) {
+     return res.status(400).send({
+       error: "Brand logo is required",
+     });
+   }
 
-    const editObject = {};
-    const uid = Math.floor(Math.random() * 100000).toString(); // Fixing the random number generation
-    const fileName = `brand-logo-${uid}`;
-    const folderName = "brand-logos";
-    const url = await uploadImage(file.buffer, fileName, folderName); // Assuming uploadImage function is defined elsewhere
-    editObject.logo = url;
-    editObject.title = title;
-    editObject.description = description;
-    editObject.redirect_link = redirect_link;
+   const editObject = {};
+   const uid = Math.floor(Math.random() * 100000).toString(); // Fixing the random number generation
+   const fileName = `brand-logo-${uid}`;
+   const folderName = "brand-logos";
+   const url = await uploadImage(file.buffer, fileName, folderName); // Assuming uploadImage function is defined elsewhere
+   editObject.logo = url;
+   editObject.title = title;
+   editObject.description = description;
+   editObject.redirect_link = redirect_link;
+   editObject.categories = categories; // Assuming categories are already properly formatted
 
-    const newBrand = new Brand(editObject);
-    const savedBrand = await newBrand.save();
+   const newBrand = new Brand(editObject);
+   const savedBrand = await newBrand.save();
 
-    res.status(201).json(savedBrand);
-  } catch (error) {
-    console.log(error);
-    res.status(500).send({ error: "Internal Server Error" });
-  }
+   res.status(201).json(savedBrand);
+ } catch (error) {
+   console.log(error);
+   res.status(500).send({ error: "Internal Server Error" });
+ }
 };
 
 // Controller to get all brands

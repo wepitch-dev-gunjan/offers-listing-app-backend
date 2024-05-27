@@ -14,7 +14,7 @@ const offerSchema = new Schema({
   description: String,
   image: String,
   expires_in: Date,
-  discount_value: Number,
+  discount_value: String,
   grabbed_by: {
     type: [Schema.Types.ObjectId],
     ref: 'User'
