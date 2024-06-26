@@ -5,7 +5,6 @@ require("dotenv").config();
 exports.userAuth = async (req, res, next) => {
   try {
     const token = req.headers['authorization']; // Corrected 'Authorization' to 'authorization'
-    console.log(token)
     let decoded = ""
     try {
       decoded = jwt.verify(token, JWT_SECRET);

@@ -307,7 +307,9 @@ exports.unsaveOffer = async (req, res) => {
     }
 
     // Remove user_id from the saved_by array
-    offer.saved_by = offer.saved_by.filter(savedUser => savedUser !== user_id);
+    offer.saved_by = offer.saved_by.filter(savedUser => {
+      return savedUser.toString() !== user_id.toString()
+    });
 
     await offer.save();
     res.status(200).send({
