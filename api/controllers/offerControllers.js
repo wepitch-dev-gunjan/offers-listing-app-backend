@@ -324,3 +324,17 @@ exports.unsaveOffer = async (req, res) => {
   }
 };
 
+exports.getSavedOffers = async (req, res) => {
+  try {
+    const { user_id } = req;
+
+    const savedOffers = await Offer.find({ saved_by: { $in: user_id } });
+    if (!savedOffers) return res.status(200).send([])
+
+    res.status(200).send(savedOffers)
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error: 'Internal Server Error' });
+  }
+};
+
