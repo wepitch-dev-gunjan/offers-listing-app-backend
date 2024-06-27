@@ -338,3 +338,29 @@ exports.getSavedOffers = async (req, res) => {
   }
 };
 
+exports.grabOffer = async (req, res) => {
+  try {
+    const { user_id } = req;
+    const { offer_id } = req.params;
+
+    const offer = await Offer.findOne({ _id: offer_id });
+    if (!offer) return res.status(404).send({
+      error: "Offer not found"
+    })
+
+    if (offer.grabbed_by.includes(user_id)) return res.status(400).send({
+      error: "User already grabbed this offer"
+    })
+    offer.grabbed_by.push(user_id)
+
+    offer.save()
+
+    res.status(200).send({
+      message: 'offer grabbed successfully'
+    })
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error: 'Internal Server Error' });
+  }
+};
+

@@ -7,7 +7,8 @@ const {
   deleteOffer,
   saveOffer,
   unsaveOffer,
-  getSavedOffers
+  getSavedOffers,
+  grabOffer
 } = require("../controllers/offerControllers");
 const upload = require("../middlewares/uploadImage");
 const { userAuth } = require("../middlewares/auth");
@@ -22,5 +23,7 @@ router.delete("/offer/:offer_id", deleteOffer);
 router.get("/saved-offers", userAuth, getSavedOffers);
 router.put("/offer/:offer_id/save", userAuth, saveOffer);
 router.put("/offer/:offer_id/unsave", userAuth, unsaveOffer);
+
+router.put('/offer/:offer_id/grab', userAuth, grabOffer)
 
 module.exports = router;

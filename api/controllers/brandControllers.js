@@ -2,50 +2,59 @@ const Brand = require("../models/Brand");
 const { uploadImage } = require("../services/cloudinary");
 
 exports.postBrand = async (req, res) => {
- try {
-   const { title, description, redirect_link, categories } = req.body;
-   const { file } = req;
+  try {
+    const { title, description, redirect_link, categories } = req.body;
+    const { file } = req;
+    console.log(file.buffer)
 
-   if (!file) {
-     return res.status(400).send({
-       error: "Brand logo is required",
-     });
-   }
+    if (!file) {
+      return res.status(400).send({
+        error: "Brand logo is required",
+      });
+    }
 
-   const editObject = {};
-   const uid = Math.floor(Math.random() * 100000).toString(); // Fixing the random number generation
-   const fileName = `brand-logo-${uid}`;
-   const folderName = "brand-logos";
-   const url = await uploadImage(file.buffer, fileName, folderName); // Assuming uploadImage function is defined elsewhere
-   editObject.logo = url;
-   editObject.title = title;
-   editObject.description = description;
-   editObject.redirect_link = redirect_link;
-   editObject.categories = categories; // Assuming categories are already properly formatted
+    const editObject = {};
+    const uid = Math.floor(Math.random() * 100000).toString(); // Fixing the random number generation
+    const fileName = `brand-logo-${uid}`;
+    const folderName = "brand-logos";
+    const url = await uploadImage(file.buffer, fileName, folderName); // Assuming uploadImage function is defined elsewhere
+    editObject.logo = url;
+    editObject.title = title;
+    editObject.description = description;
+    editObject.redirect_link = redirect_link;
+    editObject.categories = categories; // Assuming categories are already properly formatted
 
-   const newBrand = new Brand(editObject);
-   const savedBrand = await newBrand.save();
+    const newBrand = new Brand(editObject);
+    const savedBrand = await newBrand.save();
 
-   res.status(201).json(savedBrand);
- } catch (error) {
-   console.log(error);
-   res.status(500).send({ error: "Internal Server Error" });
- }
+    res.status(201).json(savedBrand);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error: "Internal Server Error" });
+  }
 };
 
 // Controller to get all brands
 exports.getBrands = async (req, res) => {
   try {
     const { search } = req.query;
-    let query = {};
-    query = {
-      $or: [
-        { title: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for name
-        { description: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for description
-      ],
-    };
 
-    const brands = await Brand.find(query);
+    let brands = [];
+    if (search) {
+      let query = {};
+      query = {
+        $or: [
+          { title: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for name
+          { description: { $regex: new RegExp(search, "i") } } // Case-insensitive search for description
+        ]
+      };
+
+      brands = await Brand.find(query);
+      if (brands == []) return res.status(200).send([]);
+    } else {
+      brands = await Brand.find();
+    }
+
     res.status(200).json(brands);
   } catch (error) {
     console.log(error);
@@ -57,14 +66,14 @@ exports.getBrands = async (req, res) => {
 exports.getBrand = async (req, res) => {
   const { brand_id } = req.params;
   try {
-    const brand = await Brand.findById(brand_id);
+    const brand = await Brand.findOne({ _id: brand_id });
     if (!brand) {
       return res.status(404).json({ error: "Brand not found" });
     }
-    res.status(200).json(brand);
+    res.status(200).send(brand);
   } catch (error) {
     console.log(error);
-    res.status(500).send({ error: "Internal Server Error" });
+    res.status(500).send({ error: error.message });
   }
 };
 
@@ -81,7 +90,7 @@ exports.putBrand = async (req, res) => {
     if (!updatedBrand) {
       return res.status(404).json({ error: "Brand not found" });
     }
-    res.status(200).json(updatedBrand);
+    res.status(200).send(updatedBrand);
   } catch (error) {
     console.log(error);
     res.status(500).send({ error: "Internal Server Error" });
@@ -91,7 +100,6 @@ exports.putBrand = async (req, res) => {
 // Controller to delete a specific brand by ID
 exports.deleteBrand = async (req, res) => {
   const { brand_id } = req.params;
-  console.log(brand_id);
   try {
     const deletedBrand = await Brand.findByIdAndDelete(brand_id);
     if (!deletedBrand) {

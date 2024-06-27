@@ -6,14 +6,12 @@ const brandSchema = new Schema(
     description: String,
     logo: String,
     redirect_link: String,
-    stores: {
-      type: [Object],
-    },
-    categories: { type: [Object] },
+    stores: [Object],
+    categories: { type: [Object] }
   },
   {
     timestamps: true,
-    strict: false,
+    strict: false
   }
 );
 
