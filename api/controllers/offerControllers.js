@@ -1,5 +1,6 @@
 const Offer = require("../models/Offer");
 const Category = require("../models/Category");
+const User = require("../models/User");
 const { deleteImage, uploadImage } = require("../services/cloudinary");
 
 // Controller to create a new offer
@@ -364,3 +365,26 @@ exports.grabOffer = async (req, res) => {
   }
 };
 
+exports.grabbedOffers = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const offers = await Offer.find()
+    const response = []
+    offers.map(offer => {
+      offer.grabbed_by.map(async user_id => {
+        const user = await User.findOne({ _id: user_id })
+        const grabbedOffer = {
+          grabbed_by: user.name,
+          offer: offer.name,
+          amount: offer.amount
+        }
+        response.push(grabbedOffer)
+      })
+    })
+
+    res.status(200).send(response)
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error: 'Internal Server Error' });
+  }
+}
