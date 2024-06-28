@@ -91,10 +91,15 @@ exports.putBrand = async (req, res) => {
     if (redirect_link) update.redirect_link = redirect_link;
     if (store) update.store = store;
 
+    // Check if update object is empty
+    if (Object.keys(update).length === 0) {
+      return res.status(400).json({ error: "No fields to update" });
+    }
+
     const updatedBrand = await Brand.findByIdAndUpdate(
       brand_id,
       update,
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     if (!updatedBrand) {
@@ -102,10 +107,14 @@ exports.putBrand = async (req, res) => {
     }
     res.status(200).send(updatedBrand);
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    if (error.kind === 'ObjectId') {
+      return res.status(400).json({ error: "Invalid brand ID" });
+    }
     res.status(500).send({ error: "Internal Server Error" });
   }
 };
+
 
 
 // Controller to delete a specific brand by ID

@@ -6,9 +6,10 @@ const { readdirSync } = require("fs");
 const { inject } = require("@vercel/analytics");
 
 const app = express();
+app.use(express.json())
 app.use(
   cors({
-    origin: "*",
+    origin: "*"
   })
 );
 
