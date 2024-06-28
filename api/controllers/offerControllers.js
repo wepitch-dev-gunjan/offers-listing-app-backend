@@ -91,23 +91,25 @@ exports.getOffers = async (req, res) => {
     // Check if search query is provided
     if (search) {
       // Define search criteria for multiple fields
-      query = {
-        $or: [
-          { name: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for name
-          { location: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for location
-          { description: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for description
-        ]
-      };
+      query.$or = [
+        { name: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for name
+        { location: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for location
+        { description: { $regex: new RegExp(search, "i") } } // Case-insensitive search for description
+      ];
     }
 
+    // Check if category is provided
     if (category) {
-      const categoryDoc = await Category.findOne({ _id: category })
-      if (categoryDoc) query.category = categoryDoc._id
+      query.category = category;
     }
 
-    if (brand) query.brand = brand;
+    // Check if brand is provided
+    if (brand) {
+      query.brand = brand;
+    }
 
-    let sortCriteria = {}; // Define sort criteria object
+    // Define sort criteria object
+    let sortCriteria = {};
 
     // Check if sort_by parameter is provided and set sort criteria accordingly
     if (sort_by) {
@@ -115,21 +117,11 @@ exports.getOffers = async (req, res) => {
       sortCriteria[sort_by] = -1;
     }
 
-    let offers = [];
-
     // Find offers based on the constructed query and populate category and brand
-    if (Object.keys(sortCriteria).length !== 0) {
-      // If sort criteria is provided, sort the offers accordingly
-      offers = await Offer.find(query)
-        .populate("category")
-        .populate("brand")
-        .sort(sortCriteria);
-    } else {
-      // If no sort criteria is provided, just populate category and brand without sorting
-      offers = await Offer.find(query)
-        .populate("category")
-        .populate("brand");
-    }
+    let offers = await Offer.find(query)
+      .populate("category")
+      .populate("brand")
+      .sort(sortCriteria);
 
     res.status(200).json(offers);
   } catch (error) {
@@ -137,6 +129,7 @@ exports.getOffers = async (req, res) => {
     res.status(500).send({ error: "Internal Server Error" });
   }
 };
+
 
 
 // Controller to get a specific offer by ID
@@ -368,7 +361,8 @@ exports.grabOffer = async (req, res) => {
 exports.grabbedOffers = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
-    const offers = await Offer.find()
+    const skip = (page - 1) * limit;
+    const offers = await Offer.find().skip(skip)
     const response = []
     offers.map(offer => {
       offer.grabbed_by.map(async user_id => {
