@@ -81,7 +81,7 @@ exports.getBrand = async (req, res) => {
 exports.putBrand = async (req, res) => {
   const { brand_id } = req.params;
   try {
-    const { title, description, logo, redirect_link, store } = req.body;
+    const { title, description, logo, redirect_link, stores } = req.body;
 
     // Create an update object dynamically
     const update = {};
@@ -89,7 +89,7 @@ exports.putBrand = async (req, res) => {
     if (description) update.description = description;
     if (logo) update.logo = logo;
     if (redirect_link) update.redirect_link = redirect_link;
-    if (store) update.store = store;
+    if (stores) update.stores = stores;
 
     // Check if update object is empty
     if (Object.keys(update).length === 0) {
