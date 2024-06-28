@@ -130,6 +130,16 @@ exports.getOffers = async (req, res) => {
   }
 };
 
+exports.getHomeScreenOffers = async (req, res) => {
+  try {
+    let offers = await Offer.aggregate([{ $sample: { size: 10 } }]);
+
+    res.status(200).json(offers);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error: "Internal Server Error" });
+  }
+};
 
 
 // Controller to get a specific offer by ID
