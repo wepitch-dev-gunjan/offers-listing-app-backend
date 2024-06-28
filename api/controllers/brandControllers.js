@@ -81,12 +81,22 @@ exports.getBrand = async (req, res) => {
 exports.putBrand = async (req, res) => {
   const { brand_id } = req.params;
   try {
-    const { title, description, logo, redirect_link } = req.body;
+    const { title, description, logo, redirect_link, store } = req.body;
+
+    // Create an update object dynamically
+    const update = {};
+    if (title) update.title = title;
+    if (description) update.description = description;
+    if (logo) update.logo = logo;
+    if (redirect_link) update.redirect_link = redirect_link;
+    if (store) update.store = store;
+
     const updatedBrand = await Brand.findByIdAndUpdate(
       brand_id,
-      { title, description, logo, redirect_link },
+      update,
       { new: true }
     );
+
     if (!updatedBrand) {
       return res.status(404).json({ error: "Brand not found" });
     }
@@ -96,6 +106,7 @@ exports.putBrand = async (req, res) => {
     res.status(500).send({ error: "Internal Server Error" });
   }
 };
+
 
 // Controller to delete a specific brand by ID
 exports.deleteBrand = async (req, res) => {
