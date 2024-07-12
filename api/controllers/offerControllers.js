@@ -13,17 +13,19 @@ exports.postOffer = async (req, res) => {
       location,
       description,
       expires_in,
-      discount_value
+      discount_value,
     } = req.body;
     const { file } = req;
-    const dateFormate = new Date(expires_in)
-    console.log(dateFormate)
+    const dateFormate = new Date(expires_in);
+    console.log(dateFormate);
 
-    discount_value = parseInt(discount_value)
+    discount_value = parseInt(discount_value);
 
     // Validate required fields
     if (!description || !expires_in || !discount_value) {
-      return res.status(400).send({ error: "Description, expires_in, and discount_value are required" });
+      return res.status(400).send({
+        error: "Description, expires_in, and discount_value are required",
+      });
     }
 
     // Validate image
@@ -33,22 +35,30 @@ exports.postOffer = async (req, res) => {
 
     // Validate expires_in format
     if (!(dateFormate instanceof Date) || isNaN(dateFormate)) {
-      return res.status(400).send({ error: "Expires_in should be a valid date" });
+      return res
+        .status(400)
+        .send({ error: "Expires_in should be a valid date" });
     }
 
     // Validate discount_value format
     if (typeof discount_value !== "number" || discount_value <= 0) {
-      return res.status(400).send({ error: "Discount_value should be a positive number" });
+      return res
+        .status(400)
+        .send({ error: "Discount_value should be a positive number" });
     }
 
     // Validate description length
     if (description.length > 500) {
-      return res.status(400).send({ error: "Description should be maximum 500 characters" });
+      return res
+        .status(400)
+        .send({ error: "Description should be maximum 500 characters" });
     }
 
     // Validate location length
     if (location && location.length > 100) {
-      return res.status(400).send({ error: "Location should be maximum 100 characters" });
+      return res
+        .status(400)
+        .send({ error: "Location should be maximum 100 characters" });
     }
 
     // Generate a unique identifier for the image file
@@ -68,7 +78,7 @@ exports.postOffer = async (req, res) => {
       description,
       image,
       expires_in,
-      discount_value
+      discount_value,
     });
 
     // Save the offer to the database
@@ -80,7 +90,6 @@ exports.postOffer = async (req, res) => {
     res.status(500).send({ error: "Internal Server Error" });
   }
 };
-
 
 // Controller to get all offers
 exports.getOffers = async (req, res) => {
@@ -94,7 +103,7 @@ exports.getOffers = async (req, res) => {
       query.$or = [
         { name: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for name
         { location: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for location
-        { description: { $regex: new RegExp(search, "i") } } // Case-insensitive search for description
+        { description: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for description
       ];
     }
 
@@ -141,20 +150,53 @@ exports.getHomeScreenOffers = async (req, res) => {
   }
 };
 
-
-// Controller to get a specific offer by ID
 exports.getOffer = async (req, res) => {
   const { offer_id } = req.params;
   try {
-    const offer = await Offer.findById(req.params.offer_id)
+    // Find the offer by ID and populate related fields
+    const offer = await Offer.findById(offer_id)
       .populate("category")
       .populate("brand");
+
     if (!offer) {
       return res.status(404).json({ error: "Offer not found" });
     }
-    res.status(200).json(offer);
+
+    // Fetch details of users who saved this offer
+    const savedUserDetails = [];
+    for (const userId of offer.saved_by) {
+      const user = await User.findById(userId);
+      if (user) {
+        savedUserDetails.push({
+          _id: user._id,
+          username: user.name,
+          email: user.email,
+        });
+      }
+    }
+    const grabbed_byDetails = [];
+    for (const userId of offer.grabbed_by) {
+      const user = await User.findById(userId);
+      console.log(user);
+      if (user) {
+        grabbed_byDetails.push({
+          _id: user._id,
+          username: user.name,
+          email: user.email,
+        });
+      }
+    }
+    console.log(grabbed_byDetails);
+
+    const responseData = {
+      offer,
+      savedUserDetails,
+      grabbed_byDetails,
+    };
+
+    res.status(200).json(responseData);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).send({ error: "Internal Server Error" });
   }
 };
@@ -163,12 +205,7 @@ exports.getOffer = async (req, res) => {
 exports.putOffer = async (req, res) => {
   const { offer_id } = req.params;
   try {
-    const {
-      category,
-      description,
-      expires_in,
-      discount_value,
-    } = req.body;
+    const { category, description, expires_in, discount_value } = req.body;
 
     // Validate request body fields
     if (!category || !description || !expires_in || !discount_value) {
@@ -177,18 +214,23 @@ exports.putOffer = async (req, res) => {
 
     // Validate expires_in format
     if (typeof expires_in !== "number" || expires_in <= 0) {
-      return res.status(400).send({ error: "Expires_in should be a positive number" });
+      return res
+        .status(400)
+        .send({ error: "Expires_in should be a positive number" });
     }
 
     // Validate discount_value format
     if (typeof discount_value !== "number" || discount_value <= 0) {
-      return res.status(400).send({ error: "Discount_value should be a positive number" });
+      return res
+        .status(400)
+        .send({ error: "Discount_value should be a positive number" });
     }
 
     // Validate category and description length
     if (category.length > 100 || description.length > 500) {
       return res.status(400).send({
-        error: "Category should be maximum 100 characters and description maximum 500 characters"
+        error:
+          "Category should be maximum 100 characters and description maximum 500 characters",
       });
     }
 
@@ -273,14 +315,15 @@ exports.saveOffer = async (req, res) => {
 
     // console.log(user_id, offer_id)
 
-    if (!offer) return res.status(404).send({
-      error: "No offer found"
-    })
+    if (!offer)
+      return res.status(404).send({
+        error: "No offer found",
+      });
 
     if (offer.saved_by.includes(user_id)) {
       return res.status(400).send({
-        error: "You are already saved this offer"
-      })
+        error: "You are already saved this offer",
+      });
     }
 
     offer.saved_by.push(user_id);
@@ -289,12 +332,12 @@ exports.saveOffer = async (req, res) => {
     res.status(200).send({
       message: "Offer saved successfully",
       data: {
-        following: true
-      }
-    })
+        following: true,
+      },
+    });
   } catch (error) {
     console.log(error);
-    res.status(500).send({ error: 'Internal Server Error' });
+    res.status(500).send({ error: "Internal Server Error" });
   }
 };
 
@@ -306,25 +349,25 @@ exports.unsaveOffer = async (req, res) => {
 
     if (!offer.saved_by.includes(user_id)) {
       return res.status(400).send({
-        error: "You haven't saved this offer yet"
-      })
+        error: "You haven't saved this offer yet",
+      });
     }
 
     // Remove user_id from the saved_by array
-    offer.saved_by = offer.saved_by.filter(savedUser => {
-      return savedUser.toString() !== user_id.toString()
+    offer.saved_by = offer.saved_by.filter((savedUser) => {
+      return savedUser.toString() !== user_id.toString();
     });
 
     await offer.save();
     res.status(200).send({
       message: "Offer unsaved successfully",
       data: {
-        following: false
-      }
-    })
+        following: false,
+      },
+    });
   } catch (error) {
     console.log(error);
-    res.status(500).send({ error: 'Internal Server Error' });
+    res.status(500).send({ error: "Internal Server Error" });
   }
 };
 
@@ -333,12 +376,12 @@ exports.getSavedOffers = async (req, res) => {
     const { user_id } = req;
 
     const savedOffers = await Offer.find({ saved_by: { $in: user_id } });
-    if (!savedOffers) return res.status(200).send([])
+    if (!savedOffers) return res.status(200).send([]);
 
-    res.status(200).send(savedOffers)
+    res.status(200).send(savedOffers);
   } catch (error) {
     console.log(error);
-    res.status(500).send({ error: 'Internal Server Error' });
+    res.status(500).send({ error: "Internal Server Error" });
   }
 };
 
@@ -348,23 +391,25 @@ exports.grabOffer = async (req, res) => {
     const { offer_id } = req.params;
 
     const offer = await Offer.findOne({ _id: offer_id });
-    if (!offer) return res.status(404).send({
-      error: "Offer not found"
-    })
+    if (!offer)
+      return res.status(404).send({
+        error: "Offer not found",
+      });
 
-    if (offer.grabbed_by.includes(user_id)) return res.status(400).send({
-      error: "User already grabbed this offer"
-    })
-    offer.grabbed_by.push(user_id)
+    if (offer.grabbed_by.includes(user_id))
+      return res.status(400).send({
+        error: "User already grabbed this offer",
+      });
+    offer.grabbed_by.push(user_id);
 
-    offer.save()
+    offer.save();
 
     res.status(200).send({
-      message: 'offer grabbed successfully'
-    })
+      message: "offer grabbed successfully",
+    });
   } catch (error) {
     console.log(error);
-    res.status(500).send({ error: 'Internal Server Error' });
+    res.status(500).send({ error: "Internal Server Error" });
   }
 };
 
@@ -372,23 +417,23 @@ exports.grabbedOffers = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
-    const offers = await Offer.find().skip(skip)
-    const response = []
-    offers.map(offer => {
-      offer.grabbed_by.map(async user_id => {
-        const user = await User.findOne({ _id: user_id })
+    const offers = await Offer.find().skip(skip);
+    const response = [];
+    offers.map((offer) => {
+      offer.grabbed_by.map(async (user_id) => {
+        const user = await User.findOne({ _id: user_id });
         const grabbedOffer = {
           grabbed_by: user.name,
           offer: offer.name,
-          amount: offer.amount
-        }
-        response.push(grabbedOffer)
-      })
-    })
+          amount: offer.amount,
+        };
+        response.push(grabbedOffer);
+      });
+    });
 
-    res.status(200).send(response)
+    res.status(200).send(response);
   } catch (error) {
     console.log(error);
-    res.status(500).send({ error: 'Internal Server Error' });
+    res.status(500).send({ error: "Internal Server Error" });
   }
-}
+};

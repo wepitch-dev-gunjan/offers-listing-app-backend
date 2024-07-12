@@ -48,7 +48,7 @@ exports.getUsers = async (req, res) => {
 // Controller to get a specific user by ID
 exports.getUser = async (req, res) => {
   try {
-    const { user_id } = req;
+    const { user_id } = req.params;
     const user = await User.findOne({ _id: user_id });
 
     if (!user) {
@@ -80,7 +80,9 @@ exports.putUser = async (req, res) => {
     if (phone_no) {
       const checkPhoneNo = await User.findOne({ phone_no });
       if (checkPhoneNo)
-        return res.status(400).json({ error: "This Phone Number is already used" });
+        return res
+          .status(400)
+          .json({ error: "This Phone Number is already used" });
       editObject.phone_no = phone_no;
     }
 
@@ -96,11 +98,9 @@ exports.putUser = async (req, res) => {
     if (gender) editObject.gender = gender;
     if (location) editObject.location = location;
 
-    const updatedUser = await User.findByIdAndUpdate(
-      user_id,
-      editObject,
-      { new: true }
-    );
+    const updatedUser = await User.findByIdAndUpdate(user_id, editObject, {
+      new: true,
+    });
 
     if (!updatedUser) {
       return res.status(404).json({ error: "User not found" });
