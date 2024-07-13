@@ -99,3 +99,50 @@ exports.addOffer = async (req, res) => {
     res.status(500).send({ error: "Internal Server Error" });
   }
 };
+
+exports.getOffers = async (req, res) => {
+  try {
+    const { search, category, sort_by, brand } = req.query;
+    let query = {};
+
+    // Check if search query is provided
+    if (search) {
+      // Define search criteria for multiple fields
+      query.$or = [
+        { name: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for name
+        { location: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for location
+        { description: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for description
+      ];
+    }
+
+    // Check if category is provided
+    if (category) {
+      query.category = category;
+    }
+
+    // Check if brand is provided
+    if (brand) {
+      query.brand = brand;
+    }
+
+    // Define sort criteria object
+    let sortCriteria = {};
+
+    // Check if sort_by parameter is provided and set sort criteria accordingly
+    if (sort_by) {
+      // For descending order, set the sort criteria to -1
+      sortCriteria[sort_by] = -1;
+    }
+
+    // Find offers based on the constructed query and populate category and brand
+    let offers = await Offer.find(query)
+      .populate("category")
+      .populate("brand")
+      .sort(sortCriteria);
+
+    res.status(200).json(offers);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error: "Internal Server Error" });
+  }
+};
