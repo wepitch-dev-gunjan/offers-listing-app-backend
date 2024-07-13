@@ -73,7 +73,7 @@ exports.putUser = async (req, res) => {
       const uid = Math.floor(Math.random() * 100000).toString(); // Fixing the random number generation
       const fileName = `user-profile-pic-${uid}`;
       const folderName = "user-profile-pics";
-      const url = await uploadImage(file.buffer, fileName, folderName); // Assuming uploadImage function is defined elsewhere
+      const url = await uploadImage(file.buffer, fileName, folderName);
       editObject.profile_pic = url;
     }
 
