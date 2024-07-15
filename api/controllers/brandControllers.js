@@ -5,7 +5,7 @@ exports.postBrand = async (req, res) => {
   try {
     const { title, description, redirect_link, categories } = req.body;
     const { file } = req;
-    console.log(file.buffer)
+    console.log(file.buffer);
 
     if (!file) {
       return res.status(400).send({
@@ -45,8 +45,8 @@ exports.getBrands = async (req, res) => {
       query = {
         $or: [
           { title: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for name
-          { description: { $regex: new RegExp(search, "i") } } // Case-insensitive search for description
-        ]
+          { description: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for description
+        ],
       };
 
       brands = await Brand.find(query);
@@ -96,11 +96,10 @@ exports.putBrand = async (req, res) => {
       return res.status(400).json({ error: "No fields to update" });
     }
 
-    const updatedBrand = await Brand.findByIdAndUpdate(
-      brand_id,
-      update,
-      { new: true, runValidators: true }
-    );
+    const updatedBrand = await Brand.findByIdAndUpdate(brand_id, update, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!updatedBrand) {
       return res.status(404).json({ error: "Brand not found" });
@@ -108,14 +107,12 @@ exports.putBrand = async (req, res) => {
     res.status(200).send(updatedBrand);
   } catch (error) {
     console.error(error);
-    if (error.kind === 'ObjectId') {
+    if (error.kind === "ObjectId") {
       return res.status(400).json({ error: "Invalid brand ID" });
     }
     res.status(500).send({ error: "Internal Server Error" });
   }
 };
-
-
 
 // Controller to delete a specific brand by ID
 exports.deleteBrand = async (req, res) => {
