@@ -203,80 +203,98 @@ exports.getOffer = async (req, res) => {
 
 // Controller to update a specific offer by ID
 exports.putOffer = async (req, res) => {
-  const { offer_id } = req.params;
-  try {
-    const { category, description, expires_in, discount_value } = req.body;
+ const { offer_id } = req.params;
+ try {
+   const { category, description, expires_in, discount_value, amount } = req.body;
 
-    // Validate request body fields
-    if (!category || !description || !expires_in || !discount_value) {
-      return res.status(400).send({ error: "All fields are required" });
-    }
+   // Validate the amount field if it is present
+   if (amount !== undefined) {
+     if (typeof amount !== "number" || amount <= 0) {
+       return res
+         .status(400)
+         .send({ error: "Amount should be a positive number" });
+     }
+   }
 
-    // Validate expires_in format
-    if (typeof expires_in !== "number" || expires_in <= 0) {
-      return res
-        .status(400)
-        .send({ error: "Expires_in should be a positive number" });
-    }
+   // Find the offer by its ID
+   const existingOffer = await Offer.findById(offer_id);
 
-    // Validate discount_value format
-    if (typeof discount_value !== "number" || discount_value <= 0) {
-      return res
-        .status(400)
-        .send({ error: "Discount_value should be a positive number" });
-    }
+   // If the offer is not found, return a 404 error
+   if (!existingOffer) {
+     return res.status(404).json({ error: "Offer not found" });
+   }
 
-    // Validate category and description length
-    if (category.length > 100 || description.length > 500) {
-      return res.status(400).send({
-        error:
-          "Category should be maximum 100 characters and description maximum 500 characters",
-      });
-    }
+   // Update only the fields that are present in the request body
+   if (category !== undefined) {
+     if (category.length > 100) {
+       return res.status(400).send({
+         error: "Category should be maximum 100 characters",
+       });
+     }
+     existingOffer.category = category;
+   }
 
-    // Find the offer by its ID
-    const existingOffer = await Offer.findById(offer_id);
+   if (description !== undefined) {
+     if (description.length > 500) {
+       return res.status(400).send({
+         error: "Description should be maximum 500 characters",
+       });
+     }
+     existingOffer.description = description;
+   }
 
-    // If the offer is not found, return a 404 error
-    if (!existingOffer) {
-      return res.status(404).json({ error: "Offer not found" });
-    }
+   if (expires_in !== undefined) {
+     if (typeof expires_in !== "number" || expires_in <= 0) {
+       return res
+         .status(400)
+         .send({ error: "Expires_in should be a positive number" });
+     }
+     existingOffer.expires_in = expires_in;
+   }
 
-    // Delete previous image if it exists
-    if (existingOffer.image) {
-      // Assuming there's a deleteImage function to delete the image
-      await deleteImage(existingOffer.image);
-    }
+   if (discount_value !== undefined) {
+     if (typeof discount_value !== "number" || discount_value <= 0) {
+       return res
+         .status(400)
+         .send({ error: "Discount_value should be a positive number" });
+     }
+     existingOffer.discount_value = discount_value;
+   }
 
-    // Check if a new image is included in the request
-    if (req.file && req.file.buffer) {
-      const uid = Math.floor(Math.random() * 100000).toString();
-      const fileName = `offer-image-${uid}`;
-      const folderName = "offer-images";
+   if (amount !== undefined) {
+     existingOffer.amount = amount;
+   }
 
-      // Upload the new image
-      const image = await uploadImage(req.file.buffer, fileName, folderName);
+   // Check if a new image is included in the request
+   if (req.file && req.file.buffer) {
+     const uid = Math.floor(Math.random() * 100000).toString();
+     const fileName = `offer-image-${uid}`;
+     const folderName = "offer-images";
 
-      // Update the offer with the new image
-      existingOffer.image = image;
-    }
+     // Upload the new image
+     const image = await uploadImage(req.file.buffer, fileName, folderName);
 
-    // Update other fields of the offer
-    existingOffer.category = category;
-    existingOffer.description = description;
-    existingOffer.expires_in = expires_in;
-    existingOffer.discount_value = discount_value;
+     // Delete previous image if it exists
+     if (existingOffer.image) {
+       // Assuming there's a deleteImage function to delete the image
+       await deleteImage(existingOffer.image);
+     }
 
-    // Save the updated offer
-    const updatedOffer = await existingOffer.save();
+     // Update the offer with the new image
+     existingOffer.image = image;
+   }
 
-    // Respond with the updated offer
-    res.status(200).json(updatedOffer);
-  } catch (error) {
-    console.log(error);
-    res.status(500).send({ error: "Internal Server Error" });
-  }
+   // Save the updated offer
+   const updatedOffer = await existingOffer.save();
+
+   // Respond with the updated offer
+   res.status(200).json(updatedOffer);
+ } catch (error) {
+   console.log(error);
+   res.status(500).send({ error: "Internal Server Error" });
+ }
 };
+
 
 // Controller to delete a specific offer by ID
 exports.deleteOffer = async (req, res) => {
