@@ -48,8 +48,9 @@ exports.getUsers = async (req, res) => {
 // Controller to get a specific user by ID
 exports.getUser = async (req, res) => {
   try {
-    const { user_id } = req.params;
+    const { user_id } = req;
     const user = await User.findOne({ _id: user_id });
+    console.log("tyest", user);
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
