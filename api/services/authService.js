@@ -14,9 +14,18 @@ exports.generateOtp = async (req, res) => {
 
     if (!phone_number)
       return res.status(400).send({ error: "Phone number is required" });
+     let otp;
 
-    // Generate a random 4-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Check if the phone number is 9782209395
+    if (phone_number === '9782209395') {
+      otp = '123456'; // Send this OTP
+    } else {
+      // Generate a random 6-digit OTP for other numbers
+      otp = Math.floor(100000 + Math.random() * 900000).toString();
+    }
+
+    // // Generate a random 4-digit OTP
+    // const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Hash the OTP using SHA-256 for storage (optional)
     const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
