@@ -2,5 +2,6 @@
   "search.exclude": {
     "": true
   },
-  "search.useGlobalIgnoreFiles": false
+  "search.useGlobalIgnoreFiles": false,
+  "workbench.colorTheme": "Hackpot Purple Haze"
 }

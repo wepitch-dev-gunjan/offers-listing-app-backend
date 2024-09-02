@@ -115,12 +115,31 @@ exports.putUser = async (req, res) => {
 };
 
 // Controller to delete a specific user by ID
+// exports.deleteUser = async (req, res) => {
+//   try {
+//     const deletedUser = await User.findByIdAndDelete(req.params.user_id);
+//     if (!deletedUser) {
+//       return res.status(404).json({ error: "User not found" });
+//     }
+//     res.status(200).json({ message: "User deleted successfully" });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).send({ error: "Internal Server Error" });
+//   }
+// };
+
+
 exports.deleteUser = async (req, res) => {
   try {
-    const deletedUser = await User.findByIdAndDelete(req.params.user_id);
+    const { user_id } = req;
+
+    // Find the user by ID and delete them
+    const deletedUser = await User.findByIdAndDelete(user_id);
+
     if (!deletedUser) {
       return res.status(404).json({ error: "User not found" });
     }
+
     res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     console.log(error);
