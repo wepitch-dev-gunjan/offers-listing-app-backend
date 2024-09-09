@@ -35,32 +35,69 @@ exports.postBrand = async (req, res) => {
 };
 
 // Controller to get all brands
+// exports.getBrands = async (req, res) => {
+//   try {
+//     const { search } = req.query;
+
+//     let brands = [];
+//     if (search) {
+//       let query = {};
+//       query = {
+//         $or: [
+//           { title: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for name
+//           { description: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for description
+//         ],
+//       };
+
+//       brands = await Brand.find(query);
+//       if (brands == []) return res.status(200).send([]);
+//     } else {
+//       brands = await Brand.find();
+//     }
+
+//     res.status(200).json(brands);
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).send({ error: "Internal Server Error" });
+//   }
+// };
+
+// Controller to get brands with optional filters for category and sub-category
 exports.getBrands = async (req, res) => {
   try {
-    const { search } = req.query;
+    const { search, category, sub_category } = req.query;
 
-    let brands = [];
+    let query = {};
+
+    // Add search filter if provided
     if (search) {
-      let query = {};
-      query = {
-        $or: [
-          { title: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for name
-          { description: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for description
-        ],
-      };
-
-      brands = await Brand.find(query);
-      if (brands == []) return res.status(200).send([]);
-    } else {
-      brands = await Brand.find();
+      query.$or = [
+        { title: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for title
+        { description: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for description
+      ];
     }
 
+    // Add category filter if provided
+    if (category) {
+      query['categories.name'] = { $regex: new RegExp(category, "i") }; // Case-insensitive search for category name
+    }
+
+    // Add sub-category filter if provided
+    if (sub_category) {
+      query['categories.sub_categories'] = { $regex: new RegExp(sub_category, "i") }; // Case-insensitive search for sub-category name
+    }
+
+    // Find brands based on constructed query
+    const brands = await Brand.find(query);
+
+    // Return the matched brands
     res.status(200).json(brands);
   } catch (error) {
     console.log(error);
     res.status(500).send({ error: "Internal Server Error" });
   }
 };
+
 
 // Controller to get a specific brand by ID
 exports.getBrand = async (req, res) => {
