@@ -11,6 +11,7 @@ const {
   grabOffer,
   grabbedOffers,
   getHomeScreenOffers,
+  getOffersBySubCategory,
 } = require("../controllers/offerControllers");
 const upload = require("../middlewares/uploadImage");
 const { userAuth } = require("../middlewares/auth");
@@ -18,6 +19,7 @@ const router = express.Router();
 
 router.post("/offer", upload.single("image"), postOffer);
 router.get("/offers", getOffers);
+router.get("/offers-by-sub-category", getOffersBySubCategory);
 router.get("/home-offers", getHomeScreenOffers);
 router.get("/offer/:offer_id", getOffer);
 router.put("/offer/:offer_id", putOffer);
