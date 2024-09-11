@@ -140,7 +140,51 @@ exports.getOffers = async (req, res) => {
 };
 
 
-// Controller to get offers by category id and sub-category name
+// // Controller to get offers by category id and sub-category name
+// exports.getOffersBySubCategory = async (req, res) => {
+//   try {
+//     const { category_id, sub_category_name } = req.query;
+
+//     // Validate the presence of category_id and sub_category_name in the request
+//     if (!category_id || !sub_category_name) {
+//       return res.status(400).send({ error: "Category ID and sub-category name are required" });
+//     }
+
+//     // Fetch the category using the provided category_id
+//     const category = await Category.findById(category_id);
+
+//     // Check if the category exists
+//     if (!category) {
+//       return res.status(404).send({ error: "Category not found" });
+//     }
+
+//     // Check if the provided sub_category_name exists within the category's sub_categories
+//     const subCategoryExists = category.sub_categories.some(subCat =>
+//       new RegExp(sub_category_name, "i").test(subCat)
+//     );
+
+//     if (!subCategoryExists) {
+//       return res.status(404).send({ error: "Sub-category not found in the specified category" });
+//     }
+
+//     // Fetch offers that match the category and the specific sub-category
+//     let offers = await Offer.find({
+//       'category': category_id,
+//       'category.sub_categories': { $regex: new RegExp(sub_category_name, "i") } // Case-insensitive search for sub-category
+//     })
+//     .populate("category")
+//     .populate("brand")
+//     .sort({ createdAt: -1 });
+
+//     // Return the matched offers
+//     res.status(200).json(offers);
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).send({ error: "Internal Server Error" });
+//   }
+// };
+
+
 exports.getOffersBySubCategory = async (req, res) => {
   try {
     const { category_id, sub_category_name } = req.query;
@@ -158,8 +202,11 @@ exports.getOffersBySubCategory = async (req, res) => {
       return res.status(404).send({ error: "Category not found" });
     }
 
-    // Check if the provided sub_category_name exists within the category's sub_categories
-    const subCategoryExists = category.sub_categories.some(subCat =>
+    // Extract all subcategories from the category's sub_categories array, handling nested structures
+    const allSubCategories = category.sub_categories.flat().filter(subCat => subCat);  // Flatten and filter out null values
+
+    // Check if the provided sub_category_name exists in the category's sub_categories
+    const subCategoryExists = allSubCategories.some(subCat =>
       new RegExp(sub_category_name, "i").test(subCat)
     );
 
