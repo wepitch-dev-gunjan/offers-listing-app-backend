@@ -141,42 +141,54 @@ exports.postOffer = async (req, res) => {
 
 // Controller to get all offers
 // Controller to get all offers
-// Updated getOffers function with sub-category filtering
 exports.getOffers = async (req, res) => {
   try {
-    const { sub_category, category } = req.query;
+    const { search, category, sort_by, brand, sub_category } = req.query;
     let query = {};
 
-    // Step 1: If sub_category is provided, find all brands associated with it
-    if (sub_category) {
-      const brands = await Brand.find({ "categories.sub_categories": sub_category });
-      
-      if (!brands || brands.length === 0) {
-        return res.status(404).json({ message: "No brands found for the given sub-category" });
-      }
-
-      // Extract the brand IDs from the brands found
-      const brandIds = brands.map(brand => brand._id);
-
-      // Add brand filtering to the query
-      query.brand = { $in: brandIds };
+    // Step 1: Handle search query (if any)
+    if (search) {
+      query.$or = [
+        { name: { $regex: new RegExp(search, "i") } },
+        { location: { $regex: new RegExp(search, "i") } },
+        { description: { $regex: new RegExp(search, "i") } }
+      ];
     }
 
-    // Step 2: If category is provided, add category filtering to the query
+    // Step 2: Filter by category (if provided)
     if (category) {
       query.category = category;
     }
 
-    // Step 3: Find offers based on the constructed query
-    const offers = await Offer.find(query)
-      .populate("category")
-      .populate("brand");
-
-    if (!offers || offers.length === 0) {
-      return res.status(404).json({ message: "No offers found" });
+    // Step 3: Filter by brand (if provided)
+    if (brand) {
+      query.brand = brand;
     }
 
-    // Step 4: Return the offers
+    // Step 4: Define sort criteria based on the query param
+    let sortCriteria = {};
+    if (sort_by) {
+      sortCriteria[sort_by] = -1;
+    }
+
+    // Step 5: Fetch all offers
+    let offers = await Offer.find(query)
+      .populate("category")
+      .populate("brand")
+      .sort(sortCriteria);
+
+    // Step 6: If sub_category is provided, filter the fetched offers
+    if (sub_category) {
+      offers = offers.filter(offer => {
+        const categorySubcategories = offer.category?.sub_categories || [];
+        const brandSubcategories = offer.brand?.categories?.flatMap(cat => cat?.sub_categories || []) || [];
+        
+        // Check if the sub_category exists in either the category or brand subcategories
+        return categorySubcategories.includes(sub_category) || brandSubcategories.includes(sub_category);
+      });
+    }
+
+    // Step 7: Send the final result
     res.status(200).json(offers);
   } catch (error) {
     console.error(error);
