@@ -141,66 +141,49 @@ exports.postOffer = async (req, res) => {
 
 // Controller to get all offers
 // Controller to get all offers
+// Updated getOffers function with sub-category filtering
 exports.getOffers = async (req, res) => {
   try {
-    const { search, category, sub_category, sort_by, brand } = req.query;
+    const { sub_category, category } = req.query;
     let query = {};
 
-    // Check if search query is provided
-    if (search) {
-      query.$or = [
-        { name: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for name
-        { location: { $regex: new RegExp(search, "i") } }, // Case-insensitive search for location
-        { description: { $regex: new RegExp(search, "i") } } // Case-insensitive search for description
-      ];
-    }
-
-    // Check if category is provided
-    if (category) {
-      const foundCategory = await Category.findOne({ name: category });
-      if (foundCategory) {
-        query.category = foundCategory._id; // Use the ObjectId of the category
-      } else {
-        return res.status(400).json({ error: "Invalid category name" });
-      }
-    }
-
-    // Filter by sub-category even if no category is provided
+    // Step 1: If sub_category is provided, find all brands associated with it
     if (sub_category) {
-      if (!category) {
-        // If no category is provided, look for offers in any category that has this sub-category
-        query["category.sub_categories"] = sub_category;
-      } else {
-        // If category is provided, filter within the specified category
-        query["category.sub_categories"] = sub_category;
+      const brands = await Brand.find({ "categories.sub_categories": sub_category });
+      
+      if (!brands || brands.length === 0) {
+        return res.status(404).json({ message: "No brands found for the given sub-category" });
       }
+
+      // Extract the brand IDs from the brands found
+      const brandIds = brands.map(brand => brand._id);
+
+      // Add brand filtering to the query
+      query.brand = { $in: brandIds };
     }
 
-    // Check if brand is provided
-    if (brand) {
-      query.brand = brand;
+    // Step 2: If category is provided, add category filtering to the query
+    if (category) {
+      query.category = category;
     }
 
-    // Define sort criteria object
-    let sortCriteria = {};
-
-    // Check if sort_by parameter is provided and set sort criteria accordingly
-    if (sort_by) {
-      sortCriteria[sort_by] = -1; // For descending order
-    }
-
-    // Find offers based on the constructed query and populate category and brand
-    let offers = await Offer.find(query)
+    // Step 3: Find offers based on the constructed query
+    const offers = await Offer.find(query)
       .populate("category")
-      .populate("brand")
-      .sort(sortCriteria);
+      .populate("brand");
 
+    if (!offers || offers.length === 0) {
+      return res.status(404).json({ message: "No offers found" });
+    }
+
+    // Step 4: Return the offers
     res.status(200).json(offers);
   } catch (error) {
-    console.log(error);
-    res.status(500).send({ error: "Internal Server Error" });
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 
 
