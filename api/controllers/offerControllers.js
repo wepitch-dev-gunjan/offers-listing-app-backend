@@ -157,12 +157,23 @@ exports.getOffers = async (req, res) => {
 
     // Check if category is provided
     if (category) {
-      query.category = category;
+      const foundCategory = await Category.findOne({ name: category });
+      if (foundCategory) {
+        query.category = foundCategory._id; // Use the ObjectId of the category
+      } else {
+        return res.status(400).json({ error: "Invalid category name" });
+      }
     }
 
-    // Handle sub-category by name
+    // Filter by sub-category even if no category is provided
     if (sub_category) {
-      query['category.sub_categories.name'] = sub_category; // Search sub-category by name
+      if (!category) {
+        // If no category is provided, look for offers in any category that has this sub-category
+        query["category.sub_categories"] = sub_category;
+      } else {
+        // If category is provided, filter within the specified category
+        query["category.sub_categories"] = sub_category;
+      }
     }
 
     // Check if brand is provided
@@ -190,6 +201,7 @@ exports.getOffers = async (req, res) => {
     res.status(500).send({ error: "Internal Server Error" });
   }
 };
+
 
 
 
