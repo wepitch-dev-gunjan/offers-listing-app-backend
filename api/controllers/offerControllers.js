@@ -140,7 +140,6 @@ exports.postOffer = async (req, res) => {
 // };
 
 // Controller to get all offers
-// Controller to get all offers
 exports.getOffers = async (req, res) => {
   try {
     const { search, category, sort_by, brand, sub_category } = req.query;
@@ -180,11 +179,11 @@ exports.getOffers = async (req, res) => {
     // Step 6: If sub_category is provided, filter the fetched offers
     if (sub_category) {
       offers = offers.filter(offer => {
-        const categorySubcategories = offer.category?.sub_categories || [];
+        // Fetch subcategories from the brand
         const brandSubcategories = offer.brand?.categories?.flatMap(cat => cat?.sub_categories || []) || [];
         
-        // Check if the sub_category exists in either the category or brand subcategories
-        return categorySubcategories.includes(sub_category) || brandSubcategories.includes(sub_category);
+        // Check if the sub_category exists in the brand's subcategories
+        return brandSubcategories.includes(sub_category);
       });
     }
 
@@ -195,6 +194,7 @@ exports.getOffers = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 
 
